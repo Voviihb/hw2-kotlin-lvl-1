@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 
 const val TAG = "MainViewModel"
 class MainViewModel constructor(private val mainRepository: MainRepository) : ViewModel() {
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    private val _errorMessage = MutableStateFlow("")
+    val errorMessage: StateFlow<String> = _errorMessage
 
     private val _dogsImage = MutableStateFlow<DogImage?>(null)
     val dogsImage: StateFlow<DogImage?> = _dogsImage
