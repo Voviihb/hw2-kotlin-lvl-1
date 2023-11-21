@@ -42,11 +42,10 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 class MainActivity : ComponentActivity() {
-    private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val mainRepository = MainRepository(ApiFactory.apiService)
-        viewModel =
+        val viewModel =
             ViewModelProvider(this, MyViewModelFactory(mainRepository))[MainViewModel::class.java]
 
         setContent {
