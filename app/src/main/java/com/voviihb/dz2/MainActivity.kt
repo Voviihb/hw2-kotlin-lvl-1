@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val listState = rememberLazyListState()
-            val dogsList = remember { mutableStateListOf<DogImage>() }
+            val dogList = remember { mutableStateListOf<DogImage>() }
             val loading by viewModel.loading.collectAsState(initial = false)
             val errorMsg by viewModel.errorMessage.collectAsState(initial = "")
 
@@ -62,14 +62,16 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(16.dp)
                 ) {
-                    items(dogsList) { dogImage ->
+                    items(dogList) { dogImage ->
                         ListRow(model = dogImage)
+                    }
+                    if (loading) {
+                        item {
+                            ShowLoading()
+                        }
                     }
                 }
 
-                if (loading) {
-                    ShowLoading()
-                }
 
                 if (errorMsg != "") {
                     ShowError(msg = errorMsg)
@@ -82,26 +84,31 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Button(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = { viewModel.loadDogImages() }
+                        onClick = { viewModel.loadDogImage() }
                     ) {
                         Text("Load dogs")
-
                     }
                 }
             }
             LaunchedEffect(viewModel) {
-                viewModel.dogsImage
+                viewModel.dogsList
                     .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                     .distinctUntilChanged()
                     .collect { data ->
-                        if (data != null) {
-                            dogsList.add(data)
-                            Log.d(TAG, data.toString())
+                        for ((index, value) in data.withIndex()) {
+                            Log.d(TAG, index.toString())
+                            if (value != null) {
+                                if (dogList.lastIndex >= index) {
+                                    Log.d(TAG, dogList.lastIndex.toString())
+                                    dogList[index] = value
+                                } else {
+                                    dogList.add(value)
+                                }
+                            }
                         }
                     }
             }
         }
-        viewModel.loadDogImages()
     }
 
     companion object {
@@ -117,10 +124,13 @@ fun ListRow(model: DogImage) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(1f),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(1f),
             contentAlignment = Alignment.Center
-            ) {
-            Card{
+        ) {
+            Card {
                 ShowDog(imageUrl = model.message)
             }
         }

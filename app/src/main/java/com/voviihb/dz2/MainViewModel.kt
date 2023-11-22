@@ -8,15 +8,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 const val TAG = "MainViewModel"
+
 class MainViewModel constructor(private val mainRepository: MainRepository) : ViewModel() {
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
-
-    private val _dogsImage = MutableStateFlow<DogImage?>(null)
-    val dogsImage: StateFlow<DogImage?> = _dogsImage
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
@@ -27,17 +24,20 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
         onError("Exception handled: ${throwable.localizedMessage}")
     }
 
-    fun loadDogImages() {
+    private val _dogsList = MutableStateFlow<List<DogImage?>>(mutableListOf())
+    val dogsList: StateFlow<List<DogImage?>> = _dogsList
+
+
+    fun loadDogImage() {
         _loading.value = true
         job = CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
             val response = mainRepository.loadDogImage()
-            withContext(Dispatchers.Main) {
-                if (response.isSuccessful) {
-                    _dogsImage.value = response.body()
-                    _loading.value = false
-                } else {
-                    onError("Error : ${response.message()} ")
-                }
+
+            if (response.isSuccessful) {
+                _dogsList.value += response.body()
+                _loading.value = false
+            } else {
+                onError("Error : ${response.message()} ")
             }
         }
     }
