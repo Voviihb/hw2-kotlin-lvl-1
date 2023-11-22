@@ -5,10 +5,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,15 +31,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
-import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -161,15 +162,38 @@ fun ShowError(msg: String) {
 
 @Composable
 fun ShowDog(imageUrl: String) {
-    AsyncImage(
+    SubcomposeAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(imageUrl)
             .crossfade(true)
             .build(),
         contentDescription = stringResource(R.string.img_description),
-        error = painterResource(id = R.drawable.no_image_error),
-        contentScale = ContentScale.Crop
-    )
+    ) {
+        when (painter.state) {
+            is AsyncImagePainter.State.Loading -> {
+                CircularProgressIndicator()
+            }
+
+            is AsyncImagePainter.State.Error -> {
+//                Image(
+//                    painter = painterResource(id = R.drawable.no_image_error),
+//                    contentDescription = stringResource(R.string.img_description),
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                )
+            }
+
+            else -> {
+                Image(
+                    painter = painter,
+                    contentDescription = stringResource(R.string.img_description),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
+                )
+            }
+        }
+    }
 }
 
 fun LazyListState.isScrolledToTheEnd() =
