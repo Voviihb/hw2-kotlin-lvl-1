@@ -1,5 +1,6 @@
 package com.voviihb.dz2
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -21,11 +22,10 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
     private var job: Job? = null
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        onError("Exception handled: ${throwable.localizedMessage}")
+        onError(throwable.localizedMessage ?: "Exception occurred!")
     }
 
-    private val _dogsList = MutableStateFlow<List<DogImage?>>(mutableListOf())
-    val dogsList: StateFlow<List<DogImage?>> = _dogsList
+    val dogsList = mutableStateListOf<DogImage?>()
 
 
     fun loadDogImage() {
@@ -34,7 +34,7 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
             val response = mainRepository.loadDogImage()
 
             if (response.isSuccessful) {
-                _dogsList.value += response.body()
+                dogsList += response.body()
                 _loading.value = false
             } else {
                 onError("Error : ${response.message()} ")

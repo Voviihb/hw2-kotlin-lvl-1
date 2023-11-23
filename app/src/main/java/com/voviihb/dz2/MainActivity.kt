@@ -1,7 +1,6 @@
 package com.voviihb.dz2
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,23 +23,19 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.flowWithLifecycle
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import kotlinx.coroutines.flow.distinctUntilChanged
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val listState = rememberLazyListState()
-            val dogList = remember { mutableStateListOf<DogImage>() }
+            val dogList = remember { viewModel.dogsList }
             val loading by viewModel.loading.collectAsState(initial = false)
             val errorMsg by viewModel.errorMessage.collectAsState(initial = "")
 
@@ -64,7 +59,7 @@ class MainActivity : ComponentActivity() {
                     contentPadding = PaddingValues(16.dp)
                 ) {
                     items(dogList) { dogImage ->
-                        ListRow(model = dogImage)
+                        if (dogImage != null) ListRow(model = dogImage)
                     }
                     if (loading) {
                         item {
@@ -91,24 +86,24 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            LaunchedEffect(viewModel) {
-                viewModel.dogsList
-                    .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                    .distinctUntilChanged()
-                    .collect { data ->
-                        for ((index, value) in data.withIndex()) {
-                            Log.d(TAG, index.toString())
-                            if (value != null) {
-                                if (dogList.lastIndex >= index) {
-                                    Log.d(TAG, dogList.lastIndex.toString())
-                                    dogList[index] = value
-                                } else {
-                                    dogList.add(value)
-                                }
-                            }
-                        }
-                    }
-            }
+//            LaunchedEffect(viewModel) {
+//                viewModel.dogsList
+//                    .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+//                    .distinctUntilChanged()
+//                    .collect { data ->
+//                        for ((index, value) in data.withIndex()) {
+//                            Log.d(TAG, index.toString())
+//                            if (value != null) {
+//                                if (dogList.lastIndex >= index) {
+//                                    Log.d(TAG, dogList.lastIndex.toString())
+//                                    dogList[index] = value
+//                                } else {
+//                                    dogList.add(value)
+//                                }
+//                            }
+//                        }
+//                    }
+//            }
         }
     }
 
@@ -175,12 +170,12 @@ fun ShowDog(imageUrl: String) {
             }
 
             is AsyncImagePainter.State.Error -> {
-//                Image(
-//                    painter = painterResource(id = R.drawable.no_image_error),
-//                    contentDescription = stringResource(R.string.img_description),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                )
+                Image(
+                    painter = painterResource(id = R.drawable.no_image_error),
+                    contentDescription = stringResource(R.string.img_description),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
             }
 
             else -> {
