@@ -2,9 +2,8 @@ package com.voviihb.dz2
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,8 +29,8 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
 
     fun loadDogImage() {
         _loading.value = true
-        job = CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
-            val response = mainRepository.loadDogImage()
+        job = viewModelScope.launch {
+            val response = mainRepository.loadDogImage(exceptionHandler)
 
             if (response.isSuccessful) {
                 dogsList += response.body()
