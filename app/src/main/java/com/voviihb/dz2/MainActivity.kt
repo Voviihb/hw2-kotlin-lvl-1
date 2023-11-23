@@ -23,7 +23,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,12 +45,16 @@ class MainActivity : ComponentActivity() {
         val mainRepository = MainRepository(ApiFactory.apiService)
         val viewModel =
             ViewModelProvider(this, MyViewModelFactory(mainRepository))[MainViewModel::class.java]
-
         setContent {
             val listState = rememberLazyListState()
             val dogList = remember { viewModel.dogsList }
             val loading by viewModel.loading.collectAsState(initial = false)
             val errorMsg by viewModel.errorMessage.collectAsState(initial = "")
+            val endOfListReached by remember {
+                derivedStateOf {
+                    listState.isScrolledToEnd()
+                }
+            }
 
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -65,6 +71,12 @@ class MainActivity : ComponentActivity() {
                         item {
                             ShowLoading()
                         }
+                    }
+                }
+
+                LaunchedEffect(endOfListReached) {
+                    for (i in 0..3) {
+                        viewModel.loadDogImage()
                     }
                 }
 
@@ -86,24 +98,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-//            LaunchedEffect(viewModel) {
-//                viewModel.dogsList
-//                    .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-//                    .distinctUntilChanged()
-//                    .collect { data ->
-//                        for ((index, value) in data.withIndex()) {
-//                            Log.d(TAG, index.toString())
-//                            if (value != null) {
-//                                if (dogList.lastIndex >= index) {
-//                                    Log.d(TAG, dogList.lastIndex.toString())
-//                                    dogList[index] = value
-//                                } else {
-//                                    dogList.add(value)
-//                                }
-//                            }
-//                        }
-//                    }
-//            }
         }
     }
 
@@ -191,5 +185,7 @@ fun ShowDog(imageUrl: String) {
     }
 }
 
-fun LazyListState.isScrolledToTheEnd() =
-    layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
+fun LazyListState.isScrolledToEnd(): Boolean {
+    val lastItem = layoutInfo.visibleItemsInfo.lastOrNull()
+    return lastItem == null || lastItem.size + lastItem.offset <= layoutInfo.viewportEndOffset
+}
