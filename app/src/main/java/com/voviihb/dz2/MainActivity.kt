@@ -43,51 +43,61 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val mainRepository = MainRepository(ApiFactory.apiService)
-        val viewModel =
-            ViewModelProvider(this, MyViewModelFactory(mainRepository))[MainViewModel::class.java]
-        setContent {
-            val listState = rememberLazyListState()
-            val dogList = remember { viewModel.dogsList }
-            val loading by viewModel.loading.collectAsState(initial = false)
-            val errorMsg by viewModel.errorMessage.collectAsState(initial = "")
-            val endOfListReached by remember {
-                derivedStateOf {
-                    listState.isScrolledToEnd()
-                }
-            }
-
-            Box(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp)
-                ) {
-                    items(dogList) { dogImage ->
-                        if (dogImage != null) ListRow(model = dogImage)
+        try {
+            val viewModel =
+                ViewModelProvider(
+                    this,
+                    MyViewModelFactory(mainRepository)
+                )[MainViewModel::class.java]
+            setContent {
+                val listState = rememberLazyListState()
+                val dogList = remember { viewModel.dogsList }
+                val loading by viewModel.loading.collectAsState(initial = false)
+                val errorMsg by viewModel.errorMessage.collectAsState(initial = "")
+                val endOfListReached by remember {
+                    derivedStateOf {
+                        listState.isScrolledToEnd()
                     }
-                    if (loading) {
-                        item {
-                            ShowLoading()
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(dogList) { dogImage ->
+                            if (dogImage != null) ListRow(model = dogImage)
+                        }
+                        if (loading) {
+                            item {
+                                ShowLoading()
+                            }
+                        }
+
+                    }
+
+                    if (errorMsg != "") {
+                        ShowButtonTryAgain(viewModel = viewModel)
+                        ShowError(msg = errorMsg)
+                    }
+
+                    LaunchedEffect(endOfListReached and (errorMsg == "")) {
+                        repeat(5) {
+                            viewModel.loadDogImage()
                         }
                     }
 
                 }
-
-                if (errorMsg != "") {
-                    ShowButtonTryAgain(viewModel = viewModel)
-                    ShowError(msg = errorMsg)
-                }
-
-                LaunchedEffect(endOfListReached and (errorMsg == "")) {
-                    repeat(5) {
-                        viewModel.loadDogImage()
-                    }
-                }
-
+            }
+        } catch (e: IllegalArgumentException) {
+            setContent {
+                ShowError(msg = e.message ?: "ViewModelException")
             }
         }
+
     }
 }
 
@@ -145,7 +155,7 @@ fun BoxScope.ShowButtonTryAgain(viewModel: MainViewModel) {
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-                repeat(3){
+                repeat(3) {
                     viewModel.loadDogImage()
                 }
                 viewModel.clearError()

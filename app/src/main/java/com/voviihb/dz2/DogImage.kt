@@ -3,8 +3,12 @@ package com.voviihb.dz2
 import com.google.gson.annotations.SerializedName
 
 data class DogImage(
-//  contains imageUrl
+    /**
+     * contains URL for dog image
+     */
     @SerializedName("message") var message: String,
-//  contains success or not
+    /**
+     * contains success status
+     */
     @SerializedName("status") var status: String
 )

@@ -9,6 +9,7 @@ const val COUNT = 10
 interface ApiService {
     @GET("image/random")
     suspend fun loadDogImage(): Response<DogImage>
+
     @GET("image/random/{count}")
     suspend fun loadDogImages(@Path("count") count: Int = COUNT): Response<List<DogImage>>
 }

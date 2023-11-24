@@ -43,7 +43,7 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
         _loading.value = false
     }
 
-    fun clearError(){
+    fun clearError() {
         _errorMessage.value = ""
     }
 
