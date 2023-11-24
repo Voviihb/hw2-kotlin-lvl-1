@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -31,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
@@ -72,31 +72,20 @@ class MainActivity : ComponentActivity() {
                             ShowLoading()
                         }
                     }
+
                 }
 
-                LaunchedEffect(endOfListReached) {
-                    for (i in 0..3) {
+                if (errorMsg != "") {
+                    ShowButtonTryAgain(viewModel = viewModel)
+                    ShowError(msg = errorMsg)
+                }
+
+                LaunchedEffect(endOfListReached and (errorMsg == "")) {
+                    repeat(5) {
                         viewModel.loadDogImage()
                     }
                 }
 
-
-                if (errorMsg != "") {
-                    ShowError(msg = errorMsg)
-                }
-
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp)
-                ) {
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { viewModel.loadDogImage() }
-                    ) {
-                        Text("Load dogs")
-                    }
-                }
             }
         }
     }
@@ -146,6 +135,28 @@ fun ShowError(msg: String) {
 }
 
 @Composable
+fun BoxScope.ShowButtonTryAgain(viewModel: MainViewModel) {
+    Row(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+    ) {
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                repeat(3){
+                    viewModel.loadDogImage()
+                }
+                viewModel.clearError()
+            }
+        ) {
+            Text(stringResource(R.string.try_again_button))
+        }
+    }
+}
+
+@Composable
 fun ShowDog(imageUrl: String) {
     SubcomposeAsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
@@ -160,12 +171,12 @@ fun ShowDog(imageUrl: String) {
             }
 
             is AsyncImagePainter.State.Error -> {
-                Image(
-                    painter = painterResource(id = R.drawable.no_image_error),
-                    contentDescription = stringResource(R.string.img_description),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
+//                Image(
+//                    painter = painterResource(id = R.drawable.no_image_error),
+//                    contentDescription = stringResource(R.string.img_description),
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                )
             }
 
             else -> {

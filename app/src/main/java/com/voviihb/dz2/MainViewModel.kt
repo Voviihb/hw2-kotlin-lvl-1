@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,8 +30,6 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
                     _loading.value = false
                 } else {
                     onError("Error : ${response.message()} ")
-                    delay(1000L)
-                    _errorMessage.value = ""
                 }
             } catch (e: Exception) {
                 onError(e.message ?: "Exception occurred!")
@@ -41,10 +38,12 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
         }
     }
 
-    private suspend fun onError(message: String) {
+    private fun onError(message: String) {
         _errorMessage.value = message
         _loading.value = false
-        delay(1500L)
+    }
+
+    fun clearError(){
         _errorMessage.value = ""
     }
 
