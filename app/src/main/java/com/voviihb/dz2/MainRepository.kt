@@ -10,4 +10,8 @@ class MainRepository constructor(private val apiService: ApiService) {
             apiService.loadDogImage()
         }
 
+    suspend fun loadDogImages() = withContext(Dispatchers.IO) {
+        apiService.loadDogImages()
+    }
+
 }

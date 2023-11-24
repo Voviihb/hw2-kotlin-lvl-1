@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
                     this,
                     MyViewModelFactory(mainRepository)
                 )[MainViewModel::class.java]
+
             setContent {
                 val listState = rememberLazyListState()
                 val dogList = remember { viewModel.dogsList }
@@ -69,7 +71,7 @@ class MainActivity : ComponentActivity() {
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(dogList) { dogImage ->
-                            if (dogImage != null) ListRow(model = dogImage)
+                            ListRow(model = dogImage)
                         }
                         if (loading) {
                             item {
@@ -85,24 +87,26 @@ class MainActivity : ComponentActivity() {
                     }
 
                     LaunchedEffect(endOfListReached and (errorMsg == "")) {
-                        repeat(5) {
-                            viewModel.loadDogImage()
-                        }
+                        viewModel.loadDogImages()
                     }
 
                 }
             }
         } catch (e: IllegalArgumentException) {
             setContent {
-                ShowError(msg = e.message ?: "ViewModelException")
+                ShowError(msg = e.message ?: EXCEPTION_VIEW_MODEL)
             }
         }
 
     }
+
+    companion object {
+        const val EXCEPTION_VIEW_MODEL = "ViewModelException"
+    }
 }
 
 @Composable
-fun ListRow(model: DogImage) {
+fun ListRow(model: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -116,7 +120,7 @@ fun ListRow(model: DogImage) {
             contentAlignment = Alignment.Center
         ) {
             Card {
-                ShowDog(imageUrl = model.message)
+                ShowDog(imageUrl = model)
             }
         }
     }
@@ -155,9 +159,7 @@ fun BoxScope.ShowButtonTryAgain(viewModel: MainViewModel) {
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-                repeat(3) {
-                    viewModel.loadDogImage()
-                }
+                viewModel.loadDogImages()
                 viewModel.clearError()
             }
         ) {
@@ -181,12 +183,12 @@ fun ShowDog(imageUrl: String) {
             }
 
             is AsyncImagePainter.State.Error -> {
-//                Image(
-//                    painter = painterResource(id = R.drawable.no_image_error),
-//                    contentDescription = stringResource(R.string.img_description),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                )
+                Image(
+                    painter = painterResource(id = R.drawable.no_image_error),
+                    contentDescription = stringResource(R.string.img_description),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
             }
 
             else -> {

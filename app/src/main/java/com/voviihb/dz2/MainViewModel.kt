@@ -18,15 +18,15 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
 
     private var job: Job? = null
 
-    val dogsList = mutableStateListOf<DogImage?>()
+    val dogsList = mutableStateListOf<String>()
 
-    fun loadDogImage() {
+    fun loadDogImages() {
         _loading.value = true
         job = viewModelScope.launch {
             try {
-                val response = mainRepository.loadDogImage()
+                val response = mainRepository.loadDogImages()
                 if (response.isSuccessful) {
-                    dogsList += response.body()
+                    dogsList += response.body()!!.message
                     _loading.value = false
                 } else {
                     onError("Error : ${response.message()} ")
@@ -34,7 +34,6 @@ class MainViewModel constructor(private val mainRepository: MainRepository) : Vi
             } catch (e: Exception) {
                 onError(e.message ?: "Exception occurred!")
             }
-
         }
     }
 
