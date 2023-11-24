@@ -100,10 +100,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    companion object {
-        const val TAG = "MainActivity"
-    }
 }
 
 @Composable
