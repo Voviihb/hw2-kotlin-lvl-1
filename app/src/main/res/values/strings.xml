@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DZ2</string>
+    <string name="img_description">Dog image</string>
+    <string name="try_again_button">Try again</string>
 </resources>
