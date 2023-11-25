@@ -41,6 +41,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 
 class MainActivity : ComponentActivity() {
+    private val EXCEPTION_VIEW_MODEL = "ViewModelException"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val mainRepository = MainRepository(ApiFactory.apiService)
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
             setContent {
                 val listState = rememberLazyListState()
-                val dogList = remember { viewModel.dogsList }
+                val dogList = viewModel.dogsList
                 val loading by viewModel.loading.collectAsState(initial = false)
                 val errorMsg by viewModel.errorMessage.collectAsState(initial = "")
                 val endOfListReached by remember {
@@ -98,10 +99,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-    }
-
-    companion object {
-        const val EXCEPTION_VIEW_MODEL = "ViewModelException"
     }
 }
 
